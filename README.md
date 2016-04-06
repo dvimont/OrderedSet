@@ -1,5 +1,5 @@
 # OrderedSet
-An <i>OrderedSet</i> extends the standard Java collections framework to provide composite-key based ordering of a set of values (analogous to <a href="https://www.techopedia.com/definition/6572/composite-key" target="_blank">composite key ordering in a relational database</a>).
+An *OrderedSet* extends the standard Java collections framework to provide composite-key based ordering of a set of values (analogous to <a href="https://www.techopedia.com/definition/6572/composite-key" target="_blank">composite key ordering in a relational database</a>). *OrderedSet* supports **Java 1.6 and later**.
 
 Complete end-user Javadocs documentation is viewable here: http://bit.ly/ordered-set
 
