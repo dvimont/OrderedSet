@@ -3,7 +3,7 @@ An <i>OrderedSet</i> extends the standard Java collections framework to provide 
 
 Complete end-user Javadocs documentation is viewable here: http://bit.ly/ordered-set
 
-A *Gist* containing several usage examples is available here: http://bit.ly/ordered-set-gist
+A *Gist* containing complete several usage examples is available here: http://bit.ly/ordered-set-gist
 
 The most straightforward way to understand *OrderedSet* functionality is through usage examples. Given a class, **Book**, with attributes (or collections of attributes) accessible via the methods **#getAuthors()**, **#getTitle()**, **#getGenres()**, and **#getPublicationDate()**, an *OrderedSet* may be constructed to automatically order a collection of **Book** objects via an **Author|Title|Book** composite-key, another <i>OrderedSet</i> constructed to order the **Book**s via a **Genre|Author|Title|Book** composite-key, another constructed with a **PublicationDate|Title|Book** composite-key, etc.
 
