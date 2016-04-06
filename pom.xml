@@ -8,7 +8,10 @@
   <packaging>jar</packaging>
 
   <name>CommonVox collections - OrderedSet</name>
-  <url>http://commonvox.org</url>
+  <description>An OrderedSet extends the standard Java collections framework
+      to provide composite-key based ordering of a set of values (analogous
+      to composite key ordering in a relational database).</description>
+  <url>http://commonvox.org/orderedset</url>
 
   <licenses>
     <license>
@@ -17,7 +20,22 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-  
+
+  <scm>
+    <connection>scm:git:git@github.com:dvimont/OrderedSet.git</connection>
+    <developerConnection>scm:git:git@github.com:dvimont/OrderedSet.git</developerConnection>
+    <url>git@github.com:dvimont/OrderedSet.git</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>Daniel Vimont</name>
+      <email>daniel@commonvox.org</email>
+      <organization>CommonVox.org</organization>
+      <organizationUrl>http://commonvox.org</organizationUrl>
+    </developer>
+  </developers>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.6</maven.compiler.source>
