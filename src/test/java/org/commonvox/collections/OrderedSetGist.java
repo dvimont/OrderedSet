@@ -28,10 +28,9 @@ import java.util.List;
 /**
  * Simple examples of constructing and querying an OrderedSet.
  */
-public class RunGist {
+public class OrderedSetGist {
 
-  public void examplesOfOrderedSetUsage()
-          throws ParseException, NoSuchMethodException {
+  public void examplesOfOrderedSetUsage() throws NoSuchMethodException {
     orderBooksByTitle();
     orderBooksByAuthorAndTitle();
     orderBooksNewestToOldest();
@@ -40,7 +39,7 @@ public class RunGist {
   /**
    * Example 1
    */
-  public void orderBooksByTitle() throws ParseException {
+  public void orderBooksByTitle() {
 
     //-- Construct OrderedSet --//
     OrderedSet<Book> booksByTitle
@@ -58,7 +57,7 @@ public class RunGist {
   /**
    * Example 2
    */
-  public void orderBooksByAuthorAndTitle() throws ParseException {
+  public void orderBooksByAuthorAndTitle() {
 
     //-- Construct KeyComponentProfiles --//
     KeyComponentProfile<Book> titleKeyComponent
@@ -85,8 +84,7 @@ public class RunGist {
   /**
    * Example 3
    */
-  public void orderBooksNewestToOldest()
-          throws ParseException, NoSuchMethodException {
+  public void orderBooksNewestToOldest() throws NoSuchMethodException {
 
     //-- Construct KeyComponentProfiles (one w/ Comparator & specific get method specified) --//
     KeyComponentProfile<Book> publicationDateKeyComponent
@@ -112,7 +110,7 @@ public class RunGist {
   //==========================================================================
   // CONSTRUCT SAMPLE LIST OF BOOKS IN RANDOM ORDER
   //==========================================================================
-  private Collection<Book> getRandomOrderBookCollection() throws ParseException {
+  private Collection<Book> getRandomOrderBookCollection() {
     return new ArrayList<Book>() {
       {
         add(new Book("Adventures of Huckleberry Finn",
@@ -170,17 +168,18 @@ public class RunGist {
     Date publicationDate;
 
     public Book(String title, List<Genre> genres, List<Author> authors,
-            String publicationDate, String revisionPublicationDate)
-            throws ParseException {
+            String publicationDate, String revisionPublicationDate) {
       this.bookId = ++bookIdGenerator;
       this.title = new Title(title);
       this.genres = genres;
       this.authors = authors;
-      this.publicationDate = DATE_FORMAT.parse(publicationDate);
+      try { this.publicationDate = DATE_FORMAT.parse(publicationDate);
+      } catch (ParseException e) {}
       if (revisionPublicationDate == null) {
         this.revisionPublicationDate = null;
       } else {
-        this.revisionPublicationDate = DATE_FORMAT.parse(revisionPublicationDate);
+        try { this.revisionPublicationDate = DATE_FORMAT.parse(revisionPublicationDate);
+        } catch (ParseException e) {}
       }
     }
 
@@ -211,7 +210,6 @@ public class RunGist {
 
     @Override
     public String toString() {
-      final String INDENT = "     ";
       StringBuilder output = new StringBuilder();
       output.append("TITLE:<").append(title).append("> | ");
       for (Author author : authors) {
@@ -296,6 +294,6 @@ public class RunGist {
   }
 
   public static void main(String[] args) throws Exception {
-    new RunGist().examplesOfOrderedSetUsage();
+    new OrderedSetGist().examplesOfOrderedSetUsage();
   }
 }
