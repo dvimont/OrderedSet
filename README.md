@@ -6,6 +6,9 @@ Complete end-user Javadocs documentation is viewable here: http://bit.ly/ordered
 A *Gist* containing several complete usage examples is available here: http://bit.ly/ordered-set-gist
 
 ---
+#### NEWSFLASH: April 8, 2016
+OrderedSet is now available via the Maven Central Repository: http://bit.ly/ordered-set-mvn-central-repo
+---
 #### Overview
 The most straightforward way to understand *OrderedSet* functionality is through usage examples.
 
