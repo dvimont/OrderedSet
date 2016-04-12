@@ -17,7 +17,7 @@ Given a class, **Book**, with attributes (or collections of attributes) accessib
 
 The following examples show *composite-key* ordering of a set of objects of the **Book.class**, which has attributes of **Author**, **Title**, **Genre**, and **Date** classes returned by the methods **Book#getAuthors()**, **Book#getTitle()**, **Book#getGenres()**, **Book#getPublicationDate()**, and **Book#getRevisionPublicationDate()**.
 
-Example 1 orders **Book**s by **Author|Title**; Example 2 orders **Book**s by **Author|PublicationDate|Title** (with an author's most recently published works listed first).
+Example 1 orders **Book**s by **Author|Title**; Example 2 orders **Book**s by **Genre|PublicationDate|Title** (with each genre's most recently published works listed first).
 
 ```java
   //== EXAMPLE 1 ==//
