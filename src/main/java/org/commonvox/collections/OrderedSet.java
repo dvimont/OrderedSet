@@ -38,14 +38,15 @@ import java.util.TreeSet;
  * set of values (analogous to
  * <a href="https://www.techopedia.com/definition/6572/composite-key"
  * target="_blank">composite key ordering in a relational database</a>).
- * For example, given a class, {@code Book}, with attributes (or collections of
- * attributes) accessible via the methods {@code #getAuthors()},
- * {@code #getTitle()}, {@code #getGenres()}, and {@code #getPublicationDate()}
- * an <i>OrderedSet</i> may be constructed to automatically order a collection
- * of {@code Book} objects via an {@code Author|Title|Book} composite-key,
- * another <i>OrderedSet</i> constructed to order the {@code Book}s via a
- * {@code Genre|Author|Title|Book} composite-key, another constructed with a
- * {@code PublicationDate|Title|Book} composite-key, etc.
+ * Its unique advantage (over standard ordering/sorting options such as TreeSet,
+ * SortedSet, or Collections#sort) is in <b>automatic ordering based on
+ * collection-attributes</b>, such as in a Book class that has an
+ * <i>authors</i> (set of Author objects) attribute and a
+ * <i>genres</i> (set of Genre objects) attribute, which could be ordered
+ * via a {@code Genre|Author|Title} composite-key.
+ * The full results of ordering are provided by the <i>OrderedSet#entrySet</i>
+ * method which returns ordered entries, each consisting of a composite-key
+ * mapped to the its corresponding value.
  * <br><br>
  * <i>Usage examples can be found <b><a href="#usage_examples">here</a></b>.</i>
  * <br><br>
@@ -53,15 +54,15 @@ import java.util.TreeSet;
  * stipulated via an array of {@link KeyComponentProfile} objects submitted to
  * the <i>OrderedSet</i>
  * {@link #OrderedSet(org.commonvox.collections.KeyComponentProfile...)
- * constructor}. Continuing with the first example above, to create an
+ * constructor}. Continuing with the example above, to create an
  * <i>OrderedSet</i> for ordering a set of {@code Book} values via an
- * {@code Author|Title|Book} composite-key, the following constructor invocation
+ * {@code Author|Title} composite-key, the following constructor invocation
  * could be used:
  * <PRE>{@code
   OrderedSet<Book> booksOrderedByAuthorAndTitle =
     new OrderedSet<Book>(
-      new KeyComponentProfile<Book>(Book.class, Author.class),   // 1st component is Author.
-      new KeyComponentProfile<Book>(Book.class, Title.class));   // 2nd component is Title.
+      new KeyComponentProfile<>(Book.class, Author.class),   // 1st component is Author.
+      new KeyComponentProfile<>(Book.class, Title.class));   // 2nd component is Title.
           // 3rd component is Book (automatically added to assure composite-key uniqueness). }</PRE>
  * Note that a {@link KeyComponentProfile} based upon the <i>valueClass</i>
  * itself (in the example case, {@code Book}) is always automatically appended
@@ -147,10 +148,10 @@ import java.util.TreeSet;
  * <i>KeyComponentProfile</i> to the {@code #getPublicationDate} method):
  * <PRE>{@code
   OrderedSet<Book> booksOrderedByPublicationDateAndTitle =
-      new OrderedSet<Book>(
-          new KeyComponentProfile<Book>(Book.class, Date.class,
+      new OrderedSet<>(
+          new KeyComponentProfile<>(Book.class, Date.class,
                           Book.class.getDeclaredMethod("getPublicationDate")),
-          new KeyComponentProfile<Book>(Book.class, Title.class)); }</PRE>
+          new KeyComponentProfile<>(Book.class, Title.class)); }</PRE>
  *
  * <a name="keyComponentSetDescription"></a>
  * <b>KeyComponentSets</b>
@@ -222,73 +223,56 @@ import java.util.TreeSet;
  * {@code Book#getTitle()}, {@code Book#getGenres()},
  * {@code Book#getPublicationDate()} and {@code Book#getRevisionPublicationDate()}.
  * <br><br>
- * Example 1 orders {@code Book}s by {@code Title};
- * Example 2 orders {@code Book}s by {@code Author|Title};
- * Example 3 orders {@code Book}s by {@code PublicationDate|Title} (most
+ * Example 1 orders {@code Book}s by {@code Author|Title};
+ * Example 2 orders {@code Book}s by {@code Genre|PublicationDate|Title} (most
  * recently published listed first).
  * <PRE>{@code
   //== EXAMPLE 1 ==//
-  public void orderBooksByTitle() {
+  public void orderBooksByAuthorAndTitle() {
 
     //-- Construct and populate OrderedSet --//
-    OrderedSet<Book> booksByTitle =
-            new OrderedSet<Book>(
-                    new KeyComponentProfile<Book>(Book.class, Title.class));
-    booksByTitle.addAll(getRandomOrderBookCollection());
+    OrderedSet<Book> booksByAuthorAndTitle
+            = new OrderedSet<>(
+                    new KeyComponentProfile<>(Book.class, Author.class),
+                    new KeyComponentProfile<>(Book.class, Book.Title.class));
 
-    //-- Get ordered list of Books via OrderedSet#values method --//
-    System.out.println("Books in TITLE order");
-    for (Book book : booksByTitle.values()) {
-      System.out.println(book);
-    }
+    booksByAuthorAndTitle.addAll(getRandomOrderBookCollection());
+
+    //-- Print results hierarchically --//
+    System.out.println("\n========\nBooks ordered by AUTHOR and TITLE\n========");
+    printHierarchically(booksByAuthorAndTitle);
   }
 
   //== EXAMPLE 2 ==//
-  public void orderBooksByAuthorAndTitle() {
+  public void orderBooksByGenreNewestToOldest() throws NoSuchMethodException {
 
-    //-- Construct KeyComponentProfiles --//
-    KeyComponentProfile<Book> titleKeyComponent =
-            new KeyComponentProfile<Book>(Book.class, Title.class);
-    KeyComponentProfile<Book> authorKeyComponent =
-            new KeyComponentProfile<Book>(Book.class, Author.class);
-
-    //-- Construct and populate OrderedSet --//
-    OrderedSet<Book> booksByAuthorAndTitle =
-            new OrderedSet<Book>(authorKeyComponent, titleKeyComponent);
-    booksByAuthorAndTitle.addAll(getRandomOrderBookCollection());
-
-    //-- Query OrderedSet via #keyComponentSet(KeyComponentProfile) & #values(Object) methods --//
-    System.out.println("Books grouped by AUTHOR, in TITLE order");
-    for (Object author : booksByAuthorAndTitle.keyComponentSet(authorKeyComponent)) {
-      System.out.println("Books by " + author + "\n------");
-      for (Book book : booksByAuthorAndTitle.values(author)) {
-        System.out.println(book);
-      }
-    }
-  }
-
-  //== EXAMPLE 3 ==//
-  public void orderBooksNewestToOldest() {
-
-    //-- Construct KeyComponentProfiles (one w/ Comparator & specific get-method specified) --//
-    KeyComponentProfile<Book> publicationDateKeyComponent =
-            new KeyComponentProfile<Book>(Book.class, Date.class,
-                    new DescendingDateComparator(),
-                    Book.class.getDeclaredMethod("getPublicationDate"));
-    KeyComponentProfile<Book> titleKeyComponent =
-            new KeyComponentProfile<Book>(Book.class, Title.class);
+    //-- Construct KeyComponentProfiles (one w/ Comparator & specific get method specified) --//
+    KeyComponentProfile<Book> genreKeyComponent
+            = new KeyComponentProfile<>(Book.class, Genre.class);
+    KeyComponentProfile<Book> publicationDateKeyComponent
+            = new KeyComponentProfile<>(Book.class, Date.class,
+                    (date1, date2) -> date2.compareTo(date1), // DESCENDING Date Comparator
+                    Book.class.getDeclaredMethod("getPublicationDate")); // limit Date.class focus to THIS method!
+    KeyComponentProfile<Book> titleKeyComponent
+            = new KeyComponentProfile<>(Book.class, Book.Title.class);
 
     //-- Construct and populate OrderedSet --//
-    OrderedSet<Book> booksByPublicationDateAndTitle =
-            new OrderedSet<Book>(publicationDateKeyComponent, titleKeyComponent);
-    booksByPublicationDateAndTitle.addAll(getRandomOrderBookCollection());
+    OrderedSet<Book> booksByGenreAndPublicationDateAndTitle
+            = new OrderedSet<>(getRandomOrderBookCollection(),
+                    genreKeyComponent, publicationDateKeyComponent, titleKeyComponent);
 
-    //-- Get ordered list of Books via OrderedSet#values method --//
-    System.out.println("Books in PUBLICATION-DATE & TITLE order (newest first)");
-    for (Book book : booksByPublicationDateAndTitle.values()) {
-      System.out.println(book);
+    //-- Print results hierarchically --//
+    System.out.println("\n========\nBooks by Genre, listed NEWEST to OLDEST\n========");
+    printHierarchically(booksByGenreAndPublicationDateAndTitle);
+
+    //-- Print all Genres in natural order --//
+    System.out.println("==========\nGENRE list\n==========");
+    for (Object genre : booksByGenreAndPublicationDateAndTitle.keyComponentSet(genreKeyComponent)) {
+      System.out.println(genre);
     }
   }}</PRE>
+ * Complete Gist examples are <a href="http://bit.ly/ordered-set-gist"
+ * target="_blank">available here</a>.
  *
  * @author Daniel Vimont
  * @param <V> The <i>valueClass</i>, i.e. the class of objects contained

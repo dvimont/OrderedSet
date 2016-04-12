@@ -23,7 +23,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Simple examples of constructing and querying an OrderedSet.
@@ -31,133 +33,134 @@ import java.util.List;
 public class OrderedSetGist {
 
   public void examplesOfOrderedSetUsage() throws NoSuchMethodException {
-    orderBooksByTitle();
     orderBooksByAuthorAndTitle();
-    orderBooksNewestToOldest();
+    orderBooksByGenreNewestToOldest();
   }
 
   /**
-   * Example 1
-   */
-  public void orderBooksByTitle() {
-
-    //-- Construct OrderedSet --//
-    OrderedSet<Book> booksByTitle
-            = new OrderedSet<Book>(
-                    new KeyComponentProfile<Book>(Book.class, Book.Title.class));
-    booksByTitle.addAll(getRandomOrderBookCollection());
-
-    //-- Query OrderedSet via #values method --//
-    System.out.println("\n========\nBooks in TITLE order\n========");
-    for (Book book : booksByTitle.values()) {
-      System.out.println(book);
-    }
-  }
-
-  /**
-   * Example 2
+   * EXAMPLE 1
    */
   public void orderBooksByAuthorAndTitle() {
 
-    //-- Construct KeyComponentProfiles --//
-    KeyComponentProfile<Book> titleKeyComponent
-            = new KeyComponentProfile<Book>(Book.class, Book.Title.class);
-    KeyComponentProfile<Book> authorKeyComponent
-            = new KeyComponentProfile<Book>(Book.class, Author.class);
-
-    //-- Construct OrderedSet --//
+    //-- Construct and populate OrderedSet --//
     OrderedSet<Book> booksByAuthorAndTitle
-            = new OrderedSet<Book>(getRandomOrderBookCollection(),
-                    authorKeyComponent, titleKeyComponent);
+//            = new OrderedSet<>( // Java 8
+            = new OrderedSet<Book>(
+                    new KeyComponentProfile<Book>(Book.class, Author.class),
+                    new KeyComponentProfile<Book>(Book.class, Book.Title.class));
 
-    //-- Query OrderedSet via #keyComponentSet() & #values(Object) methods --//
-    System.out.println(
-            "\n========\nBooks grouped by AUTHOR, in TITLE order\n========");
-    for (Object author : booksByAuthorAndTitle.keyComponentSet(authorKeyComponent)) {
-      System.out.println("------\nBooks by " + author + "\n------");
-      for (Book book : booksByAuthorAndTitle.values(author)) {
-        System.out.println("  " + book);
-      }
-    }
+    booksByAuthorAndTitle.addAll(getRandomOrderBookCollection());
+
+    //-- Print results hierarchically --//
+    System.out.println("\n========\nBooks ordered by AUTHOR and TITLE\n========");
+    printHierarchically(booksByAuthorAndTitle);
+
   }
 
   /**
-   * Example 3
+   * EXAMPLE 2
    */
-  public void orderBooksNewestToOldest() throws NoSuchMethodException {
+  public void orderBooksByGenreNewestToOldest() throws NoSuchMethodException {
 
     //-- Construct KeyComponentProfiles (one w/ Comparator & specific get method specified) --//
+    KeyComponentProfile<Book> genreKeyComponent
+            = new KeyComponentProfile<Book>(Book.class, Genre.class);
     KeyComponentProfile<Book> publicationDateKeyComponent
             = new KeyComponentProfile<Book>(Book.class, Date.class,
+                    // (date1, date2) -> date2.compareTo(date1), // lambda in Java 8
                     new DescendingDateComparator(),
-                    Book.class.getDeclaredMethod("getPublicationDate"));
+                    Book.class.getDeclaredMethod("getPublicationDate")); // limit Date.class focus to THIS method!
     KeyComponentProfile<Book> titleKeyComponent
             = new KeyComponentProfile<Book>(Book.class, Book.Title.class);
 
-    //-- Construct OrderedSet --//
-    OrderedSet<Book> booksByPublicationDateAndTitle
+    //-- Construct and populate OrderedSet --//
+    OrderedSet<Book> booksByGenreAndPublicationDateAndTitle
             = new OrderedSet<Book>(getRandomOrderBookCollection(),
-                    publicationDateKeyComponent, titleKeyComponent);
+                    genreKeyComponent, publicationDateKeyComponent, titleKeyComponent);
 
-    //-- Query OrderedSet via #values method --//
-    System.out.println(
-            "\n========\nBooks listed NEWEST to OLDEST\n========");
-    for (Book book : booksByPublicationDateAndTitle.values()) {
-      System.out.println(book);
+    //-- Print results hierarchically --//
+    System.out.println("\n========\nBooks by Genre, listed NEWEST to OLDEST\n========");
+    printHierarchically(booksByGenreAndPublicationDateAndTitle);
+
+    //-- Print all Genres in natural order --//
+    System.out.println("==========\nGENRE list\n==========");
+    for (Object genre : booksByGenreAndPublicationDateAndTitle.keyComponentSet(genreKeyComponent)) {
+      System.out.println(genre);
     }
+  }
+
+  void printHierarchically(OrderedSet<?> orderedSet) {
+    final String TAB = "     ";
+    List<Object> previousKeyComponents =
+            new ArrayList<Object>(Arrays.asList("", "", "", "", "", "", "", "", "", ""));
+    for (Map.Entry<List<Object>,?> entry : orderedSet.entrySet()){
+      List<Object> keyComponents = entry.getKey();
+      Iterator<Object> keyComponentIterator = keyComponents.iterator();
+      Iterator<Object> previousKeyComponentIterator = previousKeyComponents.iterator();
+      int tabCount = 0;
+      boolean printRemainingComponents = false;
+      while (keyComponentIterator.hasNext()) {
+        Object keyComponent = keyComponentIterator.next();
+        if (!keyComponent.equals(previousKeyComponentIterator.next()) || printRemainingComponents) {
+          printRemainingComponents = true;
+          for (int i = 0; i < tabCount; i++) {
+            System.out.print(TAB);
+          }
+          if (Date.class.isAssignableFrom(keyComponent.getClass())) {
+            System.out.println("DATE PUBLISHED: " + keyComponent);
+          } else {
+            System.out.println(keyComponent);
+          }
+        }
+        tabCount++;
+      }
+      previousKeyComponents = keyComponents;
+    }
+    System.out.println("===============");
   }
 
   //==========================================================================
   // CONSTRUCT SAMPLE LIST OF BOOKS IN RANDOM ORDER
   //==========================================================================
   private Collection<Book> getRandomOrderBookCollection() {
-    return new ArrayList<Book>() {
-      {
-        add(new Book("Adventures of Huckleberry Finn",
+    return new ArrayList<Book>(Arrays.asList(
+        new Book(1, "Adventures of Huckleberry Finn",
                 Arrays.asList(new Genre("Fiction"), new Genre("Adventure")),
                 Arrays.asList(new Author("Twain", "Mark")),
-                "1884-12-10", "1912-01-01"));
-        add(new Book("Merriam-Webster Dictionary",
+                "1884-12-10", "1912-01-01"),
+        new Book(2, "Merriam-Webster Dictionary",
                 Arrays.asList(new Genre("Nonfiction"), new Genre("Reference")),
                 Arrays.asList(new Author("Webster", "Noah"),
                         new Author("Merriam", "George")),
-                "1840-01-01", "1864-01-01"));
-        add(new Book("Through the Brazilian Wilderness",
-                Arrays.asList(new Genre("Nonfiction"), new Genre("Adventure")),
-                Arrays.asList(new Author("Roosevelt", "Theodore")),
-                "1914-01-01", null));
-        add(new Book("Advice to Youth",
+                "1840-01-01", "1864-01-01"),
+        new Book(3, "Advice to Youth",
                 Arrays.asList(new Genre("Nonfiction"), new Genre("Satire")),
                 Arrays.asList(new Author("Twain", "Mark")),
-                "1882-01-01", null));
-        add(new Book("Lucifer's Hammer",
+                "1882-01-01", null),
+        new Book(4, "Lucifer's Hammer",
                 Arrays.asList(new Genre("Fiction"), new Genre("Science Fiction"),
                         new Genre("Adventure")),
                 Arrays.asList(new Author("Niven", "Larry"), new Author("Pournelle", "Jerry")),
-                "1977-01-01", "1993-01-01"));
-        add(new Book("Slaughterhouse-Five",
+                "1977-01-01", "1993-01-01"),
+        new Book(5, "Slaughterhouse-Five",
                 Arrays.asList(new Genre("Fiction"), new Genre("Science Fiction"),
                         new Genre("Satire")),
                 Arrays.asList(new Author("Vonnegut", "Kurt")),
-                "1969-03-01", "1972-01-01"));
-        add(new Book("Dissertation on the English Language",
+                "1969-03-01", "1972-01-01"),
+        new Book(6, "Dissertation on the English Language",
                 Arrays.asList(new Genre("Nonfiction"), new Genre("Essay")),
                 Arrays.asList(new Author("Webster", "Noah")),
-                "1789-01-01", "1793-01-01"));
-        add(new Book("Man Without a Country",
+                "1789-01-01", "1793-01-01"),
+        new Book(7, "Man Without a Country",
                 Arrays.asList(new Genre("Nonfiction"), new Genre("Satire")),
                 Arrays.asList(new Author("Vonnegut", "Kurt")),
-                "2005-01-01", "2007-01-01"));
-      }
-    };
+                "2005-01-01", "2007-01-01")
+            ));
   }
 
   //========================
   // CLASS DEFINITIONS
   //========================
-  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-  private static int bookIdGenerator = 0;
-
   public class Book implements Comparable<Book> {
 
     int bookId;
@@ -166,10 +169,11 @@ public class OrderedSetGist {
     List<Author> authors;
     Date revisionPublicationDate;
     Date publicationDate;
+    final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-    public Book(String title, List<Genre> genres, List<Author> authors,
+    public Book(int bookId, String title, List<Genre> genres, List<Author> authors,
             String publicationDate, String revisionPublicationDate) {
-      this.bookId = ++bookIdGenerator;
+      this.bookId = bookId;
       this.title = new Title(title);
       this.genres = genres;
       this.authors = authors;
@@ -210,16 +214,7 @@ public class OrderedSetGist {
 
     @Override
     public String toString() {
-      StringBuilder output = new StringBuilder();
-      output.append("TITLE:<").append(title).append("> | ");
-      for (Author author : authors) {
-        output.append("AUTHOR:<").append(author).append("> | ");
-      }
-      for (Genre genre : genres) {
-        output.append("GENRE:<").append(genre).append("> | ");
-      }
-      output.append("PUBL:<").append(publicationDate).append(">");
-      return output.toString();
+      return "BOOK #" + bookId + " (" + title + ")";
     }
 
     public class Title implements Comparable<Title> {
@@ -237,7 +232,7 @@ public class OrderedSetGist {
 
       @Override
       public String toString() {
-        return title;
+        return "TITLE: " + title;
       }
     }
   }
@@ -262,7 +257,7 @@ public class OrderedSetGist {
 
     @Override
     public String toString() {
-      return firstName + " " + lastName;
+      return "AUTHOR: " + firstName + " " + lastName;
     }
   }
 
@@ -281,7 +276,7 @@ public class OrderedSetGist {
 
     @Override
     public String toString() {
-      return genre;
+      return "GENRE: " + genre;
     }
   }
 
