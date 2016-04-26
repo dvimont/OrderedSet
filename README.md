@@ -3,7 +3,7 @@ An *OrderedSet* extends the standard Java collections framework to provide compo
 
 *OrderedSet* is compatible with **Java 1.6 and later**.
 
-Complete end-user Javadocs documentation is viewable here: http://bit.ly/ordered-set
+Complete end-user Javadocs documentation is viewable here: http://dvimont.github.io/OrderedSet/
 
 A *Gist* containing several complete usage examples is available here: http://bit.ly/ordered-set-gist
 
